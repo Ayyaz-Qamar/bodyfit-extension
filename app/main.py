@@ -1,14 +1,23 @@
 from fastapi import FastAPI
+from app.routes import upload
 
-# FastAPI app banaya
-app = FastAPI(title="BodyFit Extension API")
 
-# Root route - jab koi "/" pe aaye to ye response
+app = FastAPI(
+    title="BodyFit Extension API",
+    description="AI-powered body measurement and shirt size recommendation",
+    version="0.2.0"
+)
+
+
+# Include routers
+app.include_router(upload.router)
+
+
 @app.get("/")
 def root():
     return {"message": "Hello! BodyFit API is running 🚀"}
 
-# Health check route - jab koi "/health" pe aaye
+
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "version": "0.1.0"}
+    return {"status": "healthy", "version": "0.2.0"}
