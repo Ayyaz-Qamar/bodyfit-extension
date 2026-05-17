@@ -95,7 +95,38 @@ class MeasurementResponse(BaseModel):
     measurements: BodyMeasurements
     confidence_score: float = Field(..., ge=0, le=1, description="Overall measurement confidence (0-1)")
     notes: List[str] = Field(default_factory=list, description="Any warnings or notes")
+    
+# ============================================
+# SIZE RECOMMENDATION SCHEMAS
+# ============================================
 
+class SizeRecommendationRequest(BaseModel):
+    """Request body for size recommendation."""
+    
+    upload_id: str = Field(..., description="ID of previously uploaded image")
+    user_height_cm: float = Field(..., gt=50, lt=250, description="User's height in cm")
+    user_gender: Optional[str] = Field("male", description="'male' or 'female'")
+
+
+class AlternativeSize(BaseModel):
+    """Alternative size option with confidence."""
+    size: str
+    confidence_score: float
+
+
+class SizeRecommendationResponse(BaseModel):
+    """Response from size recommendation endpoint."""
+    
+    success: bool
+    message: str
+    upload_id: str
+    recommended_size: str = Field(..., description="Best matching size (S/M/L/XL/etc)")
+    confidence_score: float = Field(..., ge=0, le=1, description="Recommendation confidence")
+    chest_circumference_estimated_cm: float
+    alternative_sizes: List[AlternativeSize]
+    explanation: str = Field(..., description="Human-readable reasoning")
+    fit_advice: str = Field(..., description="Practical wearing advice")
+    measurements_used: BodyMeasurements
 
 # ============================================
 # ERROR SCHEMAS
