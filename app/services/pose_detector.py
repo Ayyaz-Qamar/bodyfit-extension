@@ -2,6 +2,7 @@
 Pose detection service using MediaPipe.
 Extracts 33 body landmarks from an image.
 """
+
 import cv2
 import mediapipe as mp
 
@@ -9,6 +10,27 @@ import mediapipe as mp
 # MediaPipe modules - global, reused across calls
 mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils
+
+
+# Human-readable names for 33 MediaPipe pose landmarks
+LANDMARK_NAMES = {
+    0: "Nose",
+    1: "Left Eye Inner", 2: "Left Eye", 3: "Left Eye Outer",
+    4: "Right Eye Inner", 5: "Right Eye", 6: "Right Eye Outer",
+    7: "Left Ear", 8: "Right Ear",
+    9: "Mouth Left", 10: "Mouth Right",
+    11: "Left Shoulder", 12: "Right Shoulder",
+    13: "Left Elbow", 14: "Right Elbow",
+    15: "Left Wrist", 16: "Right Wrist",
+    17: "Left Pinky", 18: "Right Pinky",
+    19: "Left Index", 20: "Right Index",
+    21: "Left Thumb", 22: "Right Thumb",
+    23: "Left Hip", 24: "Right Hip",
+    25: "Left Knee", 26: "Right Knee",
+    27: "Left Ankle", 28: "Right Ankle",
+    29: "Left Heel", 30: "Right Heel",
+    31: "Left Foot Index", 32: "Right Foot Index"
+}
 
 
 def detect_pose_from_image(image_path: str) -> dict:
@@ -19,7 +41,7 @@ def detect_pose_from_image(image_path: str) -> dict:
         image_path: Path to image file (jpg/png)
     
     Returns:
-        Dictionary with success, landmarks, image_shape, or error
+        Dictionary with success status, landmarks list, image_shape, or error message
     """
     
     # Step 1: Read image with OpenCV
@@ -46,14 +68,15 @@ def detect_pose_from_image(image_path: str) -> dict:
     if not results.pose_landmarks:
         return {
             "success": False,
-            "error": "No pose detected. Ensure full body visible with good lighting."
+            "error": "No pose detected. Ensure full body is visible with good lighting."
         }
     
-    # Step 5: Extract landmark coordinates
+    # Step 5: Extract landmark coordinates with human-readable names
     landmarks = []
     for idx, lm in enumerate(results.pose_landmarks.landmark):
         landmarks.append({
             "index": idx,
+            "name": LANDMARK_NAMES.get(idx, f"Unknown_{idx}"),
             "x": round(lm.x, 4),
             "y": round(lm.y, 4),
             "z": round(lm.z, 4),
@@ -74,6 +97,13 @@ def detect_pose_from_image(image_path: str) -> dict:
 def visualize_pose_on_image(image_path: str, output_path: str) -> bool:
     """
     Draws pose landmarks and connections on image, saves to output_path.
+    
+    Args:
+        image_path: Input image path
+        output_path: Where to save annotated image
+    
+    Returns:
+        True if successful, False if pose not detected
     """
     
     image = cv2.imread(image_path)
@@ -110,41 +140,3 @@ def visualize_pose_on_image(image_path: str, output_path: str) -> bool:
     
     cv2.imwrite(output_path, image)
     return True
-
-
-# Test code - runs only when this file is executed directly
-if __name__ == "__main__":
-    print("🤖 Testing pose detection...")
-    print("=" * 60)
-    
-    test_image = "uploads/test_image.jpg"
-    output_image = "uploads/test_image_with_pose.jpg"
-    
-    # Test 1: Detect landmarks
-    result = detect_pose_from_image(test_image)
-    
-    if not result["success"]:
-        print(f"❌ Error: {result['error']}")
-    else:
-        print(f"✅ SUCCESS! Detected {len(result['landmarks'])} landmarks")
-        print(f"📐 Image size: {result['image_shape']['width']}x{result['image_shape']['height']} pixels")
-        print()
-        print("First 5 landmarks (sample):")
-        for lm in result["landmarks"][:5]:
-            print(f"  [{lm['index']:2d}] x={lm['x']:.3f}, y={lm['y']:.3f}, visibility={lm['visibility']:.3f}")
-        
-        print()
-        print("Key body landmarks:")
-        key_indices = {11: "Left Shoulder", 12: "Right Shoulder", 23: "Left Hip", 24: "Right Hip"}
-        for idx, name in key_indices.items():
-            lm = result["landmarks"][idx]
-            print(f"  {name:18s}: x={lm['x']:.3f}, y={lm['y']:.3f}, visibility={lm['visibility']:.3f}")
-        
-        # Test 2: Visualization
-        print()
-        print("🎨 Creating visualization...")
-        if visualize_pose_on_image(test_image, output_image):
-            print(f"✅ Visualization saved to: {output_image}")
-            print("👉 Open this file in VS Code or File Explorer to see the magic!")
-        else:
-            print("❌ Visualization failed")
