@@ -28,3 +28,10 @@ Thumbs.db
 # Project specific
 uploads/
 temp/
+
+# Chrome extension build artifacts (future)
+extension/*.zip
+extension/build/
+
+# OS files
+desktop.ini
